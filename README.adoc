@@ -1,0 +1,17 @@
+= Ansible role for ownCloud
+Jakub Jirutka <https://github.com/jirutka[@jirutka]>
+:role-uri-prefix: https://github.com/jirutka/ansible-role
+
+This role installs https://owncloud.org[ownCloud] on Gentoo Linux, configures it to run on PHP-FPM in a chroot environment (to minimize security risks), with PostgreSQL database and nginx as a reverse proxy.
+
+Initial admin user is “root” with password “root”.
+
+== Dependencies
+
+* {role-uri-prefix}-php-fpm-pool[php-fpm-pool]
+  ** {role-uri-prefix}-php-fpm[php-fpm]
+
+== License
+
+This project is licensed under http://opensource.org/licenses/MIT/[MIT License].
+For the full text of the license, see the link:LICENSE[LICENSE] file.
