@@ -19,8 +19,6 @@
     state=absent
     path={{ _temp.path }}/owncloud/{{ item }}
   with_items:
-    - .htaccess
-    - config/.htaccess
     - .user.ini
     - indie.json
 
