@@ -71,8 +71,10 @@ server {
 		try_files $uri $uri/ /index.php;
 	}
 
+	# Allow to invoke background jobs only from localhost.
 	location = /cron.php {
 		allow 127.0.0.1; allow ::1;
+		allow {{ ansible_default_ipv4.address }}; allow {{ ansible_default_ipv6.address }};
 		deny all;
 
 		access_log off;
