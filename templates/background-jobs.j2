@@ -1,0 +1,14 @@
+#!/bin/bash
+# {{ ansible_managed }}
+
+DOMAIN="{{ owncloud_domain }}"
+LOG_FILE="{{ owncloud_logs_dir }}/cron.log"
+
+response=$(curl -sS --resolve "$DOMAIN:443:localhost" "https://$DOMAIN/cron.php" 2>&1)
+exit_code=$?
+
+if [[ $exit_code != 0 || "$response" != *success* ]]; then
+    echo "$(date) -- $response" >> $LOG_FILE
+fi
+
+exit $exit_code

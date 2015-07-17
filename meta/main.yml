@@ -1,0 +1,30 @@
+---
+galaxy_info:
+  author: Jakub Jirutka
+  company: CTU in Prague
+  description: OwnCloud
+  license: MIT
+  min_ansible_version: 1.8
+  platforms:
+    - name: Gentoo
+  categories:
+    - web
+
+dependencies:
+  - role: nginx
+  - role: php-fpm-pool
+    php_fpm_pool_name: "{{ owncloud_name }}"
+    php_fpm_user: "{{ owncloud_user }}"
+    php_fpm_group: "{{ owncloud_group }}"
+    php_fpm_chroot_enabled: "{{ owncloud_chroot_enabled }}"
+    php_fpm_chroot_dir: "{{ owncloud_base_dir }}"
+    php_fpm_logs_dir: "{{ owncloud_logs_dir }}"
+    php_fpm_temp_dir: "{{ owncloud_temp_dir }}"
+    php_fpm_upload_max_size: "{{ owncloud_upload_max_size }}"
+    php_fpm_ini_overrides:
+      mbstring.func_overload: false
+      always_populate_raw_post_data: -1
+      output_buffering: false
+    php_fpm_disable_functions: [exec, passthru, shell_exec, system, proc_open, curl_multi_exec, show_source]
+    php_fpm_env:
+      PATH: '/usr/bin:/bin'

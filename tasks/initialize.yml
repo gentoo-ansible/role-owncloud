@@ -1,0 +1,23 @@
+---
+  # ownCloud modifies its config file in runtime so we can use this only for
+  # initial configuration.
+- name: copy initial config
+  template: >
+    force=no
+    src=config.php.j2
+    dest={{ owncloud_www_dir }}/config/config.php
+    owner={{ owncloud_user }}
+    group={{ owncloud_group }}
+    mode=0640
+  register: _config_result
+
+  # This config is used only for bootstrap, ownCloud automatically removes it
+  # after initializing.
+- name: copy initial autoconfig
+  template: >
+    src=autoconfig.php.j2
+    dest={{ owncloud_www_dir }}/config/autoconfig.php
+    owner={{ owncloud_user }}
+    group={{ owncloud_group }}
+    mode=0640
+  when: _config_result | changed

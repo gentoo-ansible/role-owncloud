@@ -1,0 +1,137 @@
+---
+# ownCloud version to install.
+owncloud_version: 8.1.0
+
+# URL of the ownCloud package to install.
+owncloud_pkg_url: "https://download.owncloud.org/community/owncloud-{{ owncloud_version }}.tar.bz2"
+
+
+# Name of this ownCloud instance.
+owncloud_name: owncloud
+
+# User to run ownCloud (will be created if not exist).
+owncloud_user: owncloud
+
+# Group to run ownCloud (will be created if not exist).
+owncloud_group: "{{ owncloud_user }}"
+
+
+# Domain name on which the ownCloud server will be accessible.
+# Note: This can't be changed using this role after initialization.
+owncloud_domain: "owncloud.{{ inventory_hostname }}"
+
+# When enabled, admins may install apps from the ownCloud app store.
+# Note: This can't be changed using this role after initialization.
+owncloud_appstore_enabled: true
+
+# A cron expression that specifies how often to run background jobs.
+# Default is every 5 minutes.
+owncloud_background_jobs_cron: "*/5 * * * *"
+
+#
+# Database
+#
+
+# Address of PostgreSQL server.
+owncloud_db_host: localhost
+owncloud_db_port: 5432
+
+# Name of database for ownCloud (will be created if not exist).
+owncloud_db_name: owncloud
+
+# Database user for ownCloud (will be created if not exist).
+owncloud_db_user: owncloud
+owncloud_db_pass: changeme
+
+# Should not be changed.
+owncloud_db_delegate_to: "{{ owncloud_db_host | replace('localhost', inventory_hostname) | replace('127.0.0.1', inventory_hostname) }}"
+
+#
+# Sending emails
+#
+
+# Email address used in the "From" field in mails sent by the ownCloud server.
+# Example: no-reply@example.org.
+owncloud_mail_from: "no-reply@{{ owncloud_domain }}"
+
+# Which mode to use for sending mails. Choose one of:
+#   sendmail - use /usr/sbin/sendmail.
+#   smtp     - use local or remote SMTP server.
+#   qmail    - use /var/qmail/bin/sendmail.
+#   php      - use whatever is defined in the php.ini.
+owncloud_mail_mode: 'smtp'
+
+# The IP address of your mail server host. This may contain multiple hosts
+# separated by a semi-colon. If you need to specify the port number append it
+# to the IP address separated by a colon, like this: 127.0.0.1:24.
+owncloud_smtp_host: "{{ smtp_host | default('127.0.0.1') }}"
+
+# Port of the SMTP server for sending emails.
+owncloud_smtp_port: "{{ smtp_port | default(25) }}"
+
+#
+# Web server
+#
+
+# Whether to setup nginx as a reverse proxy for ownCloud.
+owncloud_nginx_enabled: true
+
+# Path of the target file with ownCloud "virtual host" configuration.
+owncloud_nginx_path: "/etc/nginx/sites/{{ owncloud_name }}.conf"
+
+# Path of the TLS/SSL certificate for the domain.
+owncloud_ssl_cert:
+
+# Path of the TLS/SSL private key.
+owncloud_ssl_key:
+
+#
+# PHP
+#
+
+# Maximal size of a file that can be uploaded (in megabytes).
+owncloud_upload_max_size: 4096
+
+# List of PHP modules that should be installed.
+owncloud_php_modules: [
+  apcu, bz2, ctype, curl, dom, exif, fileinfo, gd, iconv, imagick, intl, json,
+  libxml, mbstring, mcrypt, openssl, posix, SimpleXML, xmlwriter, zip, zlib
+]
+
+# Path and permissions of the FastCGI socket
+php_fpm_socket:
+  path: "/run/{{ owncloud_name }}/fastcgi.sock"
+  group: nginx
+  mode: '0660'
+
+#
+# Paths
+#
+
+# Whether to run OwnCloud in chroot jail.
+owncloud_chroot_enabled: true
+
+# The base directory for OwnCloud. If chroot is enabled, then this will be
+# also the chroot directory.
+owncloud_base_dir: "/opt/{{ owncloud_name }}"
+
+# Path of the document root, i.e. where OwnCloud files will be installed.
+# If chroot is enabled then it MUST be inside the chroot directory (but specify
+# full path here).
+owncloud_www_dir: "{{ owncloud_base_dir }}/www"
+
+# Path of the directory to store data.
+# If chroot is enabled then it MUST be inside the chroot directory (but specify
+# full path here).
+owncloud_data_dir: "{{ owncloud_base_dir }}/data"
+
+# Path of the directory to store logs.
+# If chroot is enabled then it MUST be inside the chroot directory (but specify
+# full path here).
+# Default is /var/log/owncloud, or {{owncloud_base_dir}}/log on chroot env.
+owncloud_logs_dir: "{{ owncloud_base_dir + '/log' if owncloud_chroot_enabled else '/var/log/owncloud' }}"
+
+# Path of the directory to place temporary files.
+# If chroot is enabled then it MUST be inside the chroot directory (but specify
+# full path here).
+owncloud_temp_dir: "{{ owncloud_base_dir }}/tmp"

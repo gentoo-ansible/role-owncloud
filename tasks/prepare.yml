@@ -1,0 +1,66 @@
+---
+- name: install dev-php/pecl-imagick
+  portage: package=dev-php/pecl-imagick
+  when: "{{ 'imagick' in owncloud_php_modules }}"
+
+- name: install dev-php/pecl-apcu
+  portage: package=dev-php/pecl-apcu
+  when: "{{ 'apcu' in owncloud_php_modules }}"
+
+- name: list installed PHP modules
+  shell: >
+    php-fpm -m | grep -Po '^[\w- ]+\w$'
+  register: _php_modules
+  changed_when: false
+  tags: check
+
+- name: check if required PHP modules are compiled
+  fail: >
+    msg="Missing required PHP modules:
+    {{ owncloud_php_modules | difference(_php_modules.stdout_lines) | join(', ') }}"
+  when: owncloud_php_modules | difference(_php_modules.stdout_lines)
+  tags: check
+
+- name: create owncloud group
+  group: >
+    name={{ owncloud_group }}
+    system=yes
+  tags: accounts
+
+- name: create owncloud user
+  user: >
+    name={{ owncloud_user }}
+    group={{ owncloud_group }}
+    home={{ owncloud_base_dir }}
+    createhome=no
+    system=yes
+  tags: accounts
+
+- name: prepare directories
+  file: >
+    state=directory
+    path={{ item.path }}
+    owner={{ item.owner | default(owncloud_user) }}
+    group={{ item.group | default(owncloud_group) }}
+    mode={{ item.mode | default('0755') }}
+  with_items:
+    - { path: "{{ owncloud_base_dir }}", owner: root, group: root }
+    - { path: "{{ owncloud_base_dir }}/bin", owner: root, group: root }
+    - { path: "{{ owncloud_www_dir }}", owner: root, group: root }
+    - { path: "{{ owncloud_data_dir }}", mode: '0750' }
+    - { path: "{{ owncloud_temp_dir }}", mode: '0700' }
+    - { path: "{{ owncloud_temp_dir }}/cache", mode: '0700' }
+    - { path: "{{ owncloud_logs_dir }}" }
+
+- name: "symlink chrooted /log to /var/log/{{ owncloud_name }}"
+  file: >
+    state=link
+    src={{ owncloud_logs_dir }}
+    dest=/var/log/{{ owncloud_name }}
+  when: owncloud_chroot_enabled
+
+- name: install background-jobs script
+  template: >
+    src=background-jobs.j2
+    dest={{ owncloud_base_dir }}/bin/background-jobs
+    owner=root group=root mode=0755

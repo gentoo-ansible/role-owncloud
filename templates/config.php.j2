@@ -1,0 +1,301 @@
+{% macro bool(value) -%}
+{{ 'true' if value | bool else 'false' }}
+{%- endmacro %}
+<?php
+
+$CONFIG = array(
+
+
+/**
+ * Default Parameters
+ *
+ * These parameters are configured by the ownCloud installer, and are required
+ * for your ownCloud server to operate.
+ */
+
+/**
+ * Your list of trusted domains that users can log into. Specifying trusted
+ * domains prevents host header poisoning. Do not remove this, as it performs
+ * necessary security checks.
+ */
+'trusted_domains' =>
+  array (
+    0 => '{{ owncloud_domain }}'
+  ),
+
+/**
+ * Where user files are stored; this defaults to ``data/`` in the ownCloud
+ * directory. The SQLite database is also stored here, when you use SQLite.
+ * (SQLite is available only in ownCloud Community Edition)
+ */
+'datadirectory' => '/{{ owncloud_data_dir | relpath(_prefix) }}',
+
+
+/**
+ * Mail Parameters
+ *
+ * These configure the email settings for ownCloud notifications and password
+ * resets.
+ */
+
+/**
+ * The return address that you want to appear on emails sent by the ownCloud
+ * server, for example ``oc-admin@example.com``, substituting your own domain,
+ * of course.
+ */
+'mail_domain' => '{{ owncloud_mail_from.split('@')[1] }}',
+
+/**
+ * FROM address that overrides the built-in ``sharing-noreply`` and
+ * ``lostpassword-noreply`` FROM addresses.
+ */
+'mail_from_address' => '{{ owncloud_mail_from.split('@')[0] }}',
+
+/**
+ * Enable SMTP class debugging.
+ */
+'mail_smtpdebug' => false,
+
+/**
+ * Which mode to use for sending mail: ``sendmail``, ``smtp``, ``qmail`` or
+ * ``php``.
+ *
+ * If you are using local or remote SMTP, set this to ``smtp``.
+ *
+ * If you are using PHP mail you must have an installed and working email system
+ * on the server. The program used to send email is defined in the ``php.ini``
+ * file.
+ *
+ * For the ``sendmail`` option you need an installed and working email system on
+ * the server, with ``/usr/sbin/sendmail`` installed on your Unix system.
+ *
+ * For ``qmail`` the binary is /var/qmail/bin/sendmail, and it must be installed
+ * on your Unix system.
+ */
+'mail_smtpmode' => '{{ owncloud_mail_mode }}',
+
+/**
+ * This depends on ``mail_smtpmode``. Specified the IP address of your mail
+ * server host. This may contain multiple hosts separated by a semi-colon. If
+ * you need to specify the port number append it to the IP address separated by
+ * a colon, like this: ``127.0.0.1:24``.
+ */
+'mail_smtphost' => '{{ owncloud_smtp_host }}',
+
+/**
+ * This depends on ``mail_smtpmode``. Specify the port for sending mail.
+ */
+'mail_smtpport' => {{ owncloud_smtp_port }},
+
+/**
+ * This depends on ``mail_smtpmode``. This set an SMTP server timeout, in
+ * seconds. You may need to increase this if you are running an anti-malware or
+ * spam scanner.
+ */
+'mail_smtptimeout' => 10,
+
+
+/**
+ * Proxy Configurations
+ */
+
+/**
+ * Use this configuration parameter to specify the base url for any urls which
+ * are generated within ownCloud using any kind of command line tools (cron or
+ * occ). The value should contain the full base URL:
+ * ``https://www.example.com/owncloud``
+ */
+'overwrite.cli.url' => 'https://{{ owncloud_domain }}',
+
+
+/**
+ * ownCloud Verifications
+ *
+ * ownCloud performs several verification checks. There are two options,
+ * ``true`` and ``false``.
+ */
+
+/**
+ * Check if ownCloud is up-to-date and shows a notification if a new version is
+ * available.
+ */
+'updatechecker' => false,
+
+/**
+ * Is ownCloud connected to the Internet or running in a closed network?
+ */
+'has_internet_connection' => true,
+
+/**
+ * Allows ownCloud to verify a working WebDAV connection. This is done by
+ * attempting to make a WebDAV request from PHP.
+ */
+'check_for_working_webdav' => true,
+
+/**
+ * This is a crucial security check on Apache servers that should always be set
+ * to ``true``. This verifies that the ``.htaccess`` file is writable and works.
+ * If it is not, then any options controlled by ``.htaccess``, such as large
+ * file uploads, will not work. It also runs checks on the ``data/`` directory,
+ * which verifies that it can't be accessed directly through the web server.
+ */
+'check_for_working_htaccess' => false,
+
+
+/**
+ * Logging
+ */
+
+/**
+ * By default the ownCloud logs are sent to the ``owncloud.log`` file in the
+ * default ownCloud data directory.
+ * If syslogging is desired, set this parameter to ``syslog``.
+ * Setting this parameter to ``errorlog`` will use the PHP error_log function
+ * for logging.
+ */
+'log_type' => 'owncloud',
+
+/**
+ * Change the ownCloud logfile name from ``owncloud.log`` to something else.
+ */
+'logfile' => '/{{ owncloud_logs_dir | relpath(_prefix) }}/owncloud.log',
+
+/**
+ * Loglevel to start logging at. Valid values are: 0 = Debug, 1 = Info, 2 =
+ * Warning, 3 = Error. The default value is Warning.
+ */
+'loglevel' => 2,
+
+/**
+ * This uses PHP.date formatting; see http://php.net/manual/en/function.date.php
+ */
+'logdateformat' => 'F d, Y H:i:s',
+
+/**
+ * Log successful cron runs.
+ */
+'cron_log' => true,
+
+
+/**
+ * Apps
+ *
+ * Options for the Apps folder, Apps store, and App code checker.
+ */
+
+/**
+ * When enabled, admins may install apps from the ownCloud app store.
+ * The app store is disabled by default for ownCloud Enterprise Edition
+ */
+'appstoreenabled' => {{ bool(owncloud_appstore_enabled) }},
+
+/**
+ * Whether to show experimental apps in the appstore interface
+ *
+ * Experimental apps are not checked for security issues and are new or known
+ * to be unstable and under heavy development. Installing these can cause data
+ * loss or security breaches.
+ */
+'appstore.experimental.enabled' => false,
+
+
+/**
+ * Previews
+ *
+ * ownCloud supports previews of image files, the covers of MP3 files, and text
+ * files. These options control enabling and disabling previews, and thumbnail
+ * size.
+ */
+
+/**
+ * If a lot of small pictures are stored on the ownCloud instance and the
+ * preview system generates blurry previews, you might want to consider setting
+ * a maximum scale factor. By default, pictures are upscaled to 10 times the
+ * original size. A value of ``1`` or ``null`` disables scaling.
+ */
+'preview_max_scale_factor' => 3,
+
+/**
+ * max file size for generating image previews with imagegd (default behaviour)
+ * If the image is bigger, it'll try other preview generators,
+ * but will most likely show the default mimetype icon
+ *
+ * Value represents the maximum filesize in megabytes
+ * Default is 50
+ * Set to -1 for no limit
+ */
+'preview_max_filesize_image' => 10,
+
+
+/**
+ * Miscellaneous
+ */
+
+/**
+ * The default cipher for encrypting files. Currently AES-128-CFB and
+ * AES-256-CFB are supported.
+ */
+'cipher' => 'AES-256-CFB',
+
+/**
+ * Memory caching backend configuration
+ *
+ * Available cache backends:
+ * - \OC\Memcache\APC        Alternative PHP Cache backend
+ * - \OC\Memcache\APCu       APC user backend
+ * - \OC\Memcache\ArrayCache In-memory array-based backend (not recommended)
+ * - \OC\Memcache\Memcached  Memcached backend
+ * - \OC\Memcache\Redis      Redis backend
+ * - \OC\Memcache\XCache     XCache backend
+ */
+
+/**
+ * Memory caching backend for locally stored data
+ * Used for host-specific data, e.g. file paths
+ */
+'memcache.local' => '\OC\Memcache\APCu',
+
+/**
+ * Location of the cache folder, defaults to ``data/$user/cache`` where
+ * ``$user`` is the current user. When specified, the format will change to
+ * ``$cache_path/$user`` where ``$cache_path`` is the configured cache directory
+ * and ``$user`` is the user.
+ */
+'cache_path' => '/{{ owncloud_temp_dir | relpath(_prefix) }}/cache',
+
+/**
+ * Specifies how often the filesystem is checked for changes made outside
+ * ownCloud.
+ *
+ * 0 -> Never check the filesystem for outside changes, provides a performance
+ * increase when it's certain that no changes are made directly to the
+ * filesystem
+ *
+ * 1 -> Check each file or folder at most once per request, recommended for
+ * general use if outside changes might happen.
+ *
+ * 2 -> Check every time the filesystem is used, causes a performance hit when
+ * using external storages, not recommended for regular use.
+ */
+'filesystem_check_changes' => 0,
+
+/**
+ * All css and js files will be served by the web server statically in one js
+ * file and one css file if this is set to ``true``.
+ */
+//'asset-pipeline.enabled' => false,
+
+/**
+ * Database types that are supported for installation.
+ *
+ * Available:
+ * 	- sqlite (SQLite3 - Community Edition Only)
+ * 	- mysql (MySQL)
+ * 	- pgsql (PostgreSQL)
+ * 	- oci (Oracle - Enterprise Edition Only)
+ */
+'supportedDatabases' => array(
+	'sqlite',
+	'pgsql'
+)
+);

@@ -1,0 +1,98 @@
+# {{ ansible_managed }}
+
+upstream owncloud_fcgi {
+{% if php_fpm_port is defined and php_fpm_port > 0 %}
+	server 127.0.0.1:{{ php_fpm_port }};
+{% else %}
+	server unix:{{ php_fpm_socket.path }};
+{% endif %}
+}
+
+server {
+	listen		[::]:443 ssl;
+	server_name	{{ owncloud_domain }};
+
+	root		{{ owncloud_www_dir }};
+
+	access_log	/var/log/nginx/{{ owncloud_name }}.access.log main;
+	error_log	/var/log/nginx/{{ owncloud_name }}.error.log warn;
+
+{% if owncloud_ssl_cert %}
+	ssl_certificate		{{ owncloud_ssl_cert }};
+	ssl_certificate_key	{{ owncloud_ssl_key }};
+
+{% endif %}
+	client_max_body_size {{ owncloud_upload_max_size }}M;
+
+	# Disable gzip to avoid the removal of the ETag header.
+	gzip off;
+
+	fastcgi_buffers 64 4K;
+	fastcgi_keep_conn on;
+	fastcgi_intercept_errors on;
+
+	include	incl/fastcgi_params.conf;
+
+{% if owncloud_chroot_enabled %}
+{% set _www_dir = '/' + owncloud_www_dir | relpath(_prefix) %}
+	# Ajust paths for chroot jail.
+	fastcgi_param DOCUMENT_ROOT {{ _www_dir }};
+	fastcgi_param SCRIPT_FILENAME {{ _www_dir }}/$fastcgi_script_name;
+
+{% endif %}
+	# Enable HSTS Policy
+	add_header Strict-Transport-Security 'max-age=315360000';
+
+	index index.php;
+
+	error_page 403 /core/templates/403.php;
+	error_page 404 /core/templates/404.php;
+
+	# Do not log requests to favicon.ico and robots.txt
+	include incl/handle_favicon.conf;
+	include incl/handle_robots.conf;
+
+	rewrite ^/caldav(.*)$ 			/remote.php/caldav$1 	redirect;
+	rewrite ^/carddav(.*)$ 			/remote.php/carddav$1 	redirect;
+	rewrite ^/webdav(.*)$ 			/remote.php/webdav$1 	redirect;
+	rewrite ^/.well-known/carddav 	/remote.php/carddav/ 	redirect;
+	rewrite ^/.well-known/caldav 	/remote.php/caldav/ 	redirect;
+
+	# Only needed with webfinger.
+	rewrite ^/.well-known/host-meta 		/public.php?service=host-meta 		last;
+	rewrite ^/.well-known/host-meta.json 	/public.php?service=host-meta-json 	last;
+
+	location ~ ^/(?:config|data|db_structure\.xml)/ {
+		deny all;
+	}
+
+	location / {
+		rewrite ^(/core/doc/[^\/]+/)$ $1/index.html;
+		try_files $uri $uri/ /index.php;
+	}
+
+	location = /cron.php {
+		allow 127.0.0.1; allow ::1;
+		deny all;
+
+		access_log off;
+		fastcgi_pass owncloud_fcgi;
+	}
+
+	location ~ [^/]\.php(?:$|/) {
+		fastcgi_split_path_info ^(.+\.php)(/.*)$;
+		fastcgi_pass owncloud_fcgi;
+	}
+
+	# Set long Expires header on static assets.
+	location ~* \.(?:jpg|jpeg|gif|bmp|ico|png|css|js|swf)$ {
+		expires 30d;
+	}
+}
+
+server {
+	listen			[::]:80;
+	server_name		{{ owncloud_domain }};
+
+	rewrite			^ https://$server_name$request_uri? permanent;
+}

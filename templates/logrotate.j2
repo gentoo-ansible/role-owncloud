@@ -1,0 +1,8 @@
+# {{ ansible_managed }}
+
+{{ owncloud_logs_dir }}/*.log {
+	missingok
+	compress
+	su {{ owncloud_user }} {{ owncloud_group }}
+	delaycompress
+}

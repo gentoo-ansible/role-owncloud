@@ -1,0 +1,14 @@
+---
+- name: create database user
+  delegate_to: "{{ owncloud_db_delegate_to }}"
+  postgresql_user: >
+    name={{ owncloud_db_user }}
+    password="{{ owncloud_db_pass }}"
+  tags: accounts
+
+- name: create database
+  delegate_to: "{{ owncloud_db_delegate_to }}"
+  postgresql_db: >
+    name={{ owncloud_db_name }}
+    owner={{ owncloud_db_user }}
+  register: createdb_result

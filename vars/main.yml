@@ -1,0 +1,2 @@
+---
+_prefix: "{{ owncloud_base_dir if owncloud_chroot_enabled | bool else '/' }}"

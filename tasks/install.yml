@@ -1,0 +1,44 @@
+---
+- name: create temp directory
+  action: mktemp_dir
+  register: _temp
+
+- name: download package to temp
+  get_url: >
+    url={{ owncloud_pkg_url }}
+    dest={{ _temp.path }}/{{ owncloud_pkg_url | basename }}
+
+- name: unpack package in temp
+  unarchive: >
+    copy=no
+    src={{ _temp.path }}/{{ owncloud_pkg_url | basename }}
+    dest={{ _temp.path }}
+
+- name: remove useless files and directories
+  file: >
+    state=absent
+    path={{ _temp.path }}/owncloud/{{ item }}
+  with_items:
+    - .htaccess
+    - config/.htaccess
+    - .user.ini
+    - indie.json
+
+- name: copy files to place
+  shell: >
+    cp -r {{ _temp.path }}/owncloud/* {{ owncloud_www_dir }}/
+  notify: restart owncloud
+
+- name: make dirs apps, config and themes writable for the owncloud user
+  file: >
+    path={{ owncloud_www_dir }}/{{ item }}
+    owner={{ owncloud_user }}
+    group={{ owncloud_group }}
+    mode=0755
+  with_items: [ apps, config, themes ]
+
+- name: delete temp directory
+  file: >
+    state=absent
+    path={{ _temp.path }}
+  tags: cleanup

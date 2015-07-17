@@ -1,0 +1,5 @@
+---
+- name: restart owncloud
+  service: >
+    name={{ owncloud_name }}
+    state=restarted

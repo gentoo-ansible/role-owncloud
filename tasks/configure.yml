@@ -1,0 +1,23 @@
+---
+- name: configure cron for background jobs
+  copy: >
+    dest=/etc/cron.d/{{ owncloud_name }}.cron
+    content="{{ owncloud_background_jobs_cron }} {{ owncloud_user }} {{ owncloud_base_dir }}/bin/background-jobs\n"
+    owner=root group=root mode=0644
+  tags: cron
+
+- name: configure logrotate
+  template: >
+    src=logrotate.j2
+    dest=/etc/logrotate.d/{{ owncloud_name }}
+    owner=root group=root mode=0644
+  ignore_errors: yes
+
+- name: configure nginx site
+  template: >
+    src=nginx.conf.j2
+    dest={{ owncloud_nginx_path }}
+    owner=root group=root mode=0644
+  notify: reload nginx
+  when: owncloud_nginx_enabled | bool
+  tags: nginx

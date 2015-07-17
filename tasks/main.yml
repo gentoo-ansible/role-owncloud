@@ -1,0 +1,43 @@
+---
+- include: prepare.yml tags=install,prepare
+
+- name: check installed version
+  shell: |
+    sed -nE "s/.OC_VersionString\s*=\s*(['\"])([^'\"]+)\1.*/\2/p" \
+      {{ owncloud_www_dir }}/version.php || echo ''
+  changed_when: false
+  register: _installed_version
+  tags: install
+
+- include: install.yml tags=install
+  when: _installed_version.stdout != owncloud_version
+
+- include: configure.yml tags=config
+
+- include: database.yml tags=database
+  sudo: yes
+  sudo_user: postgres
+
+- include: initialize.yml tags=initialize
+
+- name: link runscript for php-fpm pool
+  file: >
+    state=link
+    src=/etc/init.d/php-fpm
+    dest=/etc/init.d/{{ owncloud_name }}
+  tags: fpm
+
+  # Trigger handlers now to avoid unnecessary restarts.
+- meta: flush_handlers
+
+- name: enable and start owncloud
+  service: >
+    name={{ owncloud_name }}
+    enabled=yes
+    state=started
+  tags: services
+
+- name: "ensure that https://{{ owncloud_domain }} returns HTTP 200"
+  sudo: no
+  local_action: uri url=https://{{ owncloud_domain }} status_code=200 timeout=10
+  tags: check
