@@ -1,4 +1,10 @@
 ---
+- name: configure runscript
+  copy: >
+    dest=/etc/conf.d/{{ owncloud_name }}
+    content='rc_use="postgresql"'
+    owner=root group=root mode=0644
+
 - name: configure cron for background jobs
   copy: >
     dest=/etc/cron.d/{{ owncloud_name }}.cron

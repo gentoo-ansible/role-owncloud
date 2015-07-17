@@ -25,7 +25,6 @@
     state=link
     src=/etc/init.d/php-fpm
     dest=/etc/init.d/{{ owncloud_name }}
-  tags: fpm
 
   # Trigger handlers now to avoid unnecessary restarts.
 - meta: flush_handlers
