@@ -89,8 +89,8 @@ owncloud_ssl_key:
 # PHP
 #
 
-# Maximal size of a file that can be uploaded (in megabytes).
-owncloud_upload_max_size: 4096
+# Maximal size of a file that can be uploaded via web interface (in megabytes).
+owncloud_upload_max_size: 512
 
 # List of PHP modules that should be installed.
 owncloud_php_modules: [
