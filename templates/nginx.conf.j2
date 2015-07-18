@@ -33,6 +33,9 @@ server {
 
 	include	incl/fastcgi_params.conf;
 
+	# Enable use of X-Accel-Redirect for serving static files directly.
+	fastcgi_param MOD_X_ACCEL_REDIRECT_ENABLED on;
+
 {% if owncloud_chroot_enabled %}
 {% set _www_dir = '/' + owncloud_www_dir | relpath(_prefix) %}
 	# Ajust paths for chroot jail.
@@ -62,8 +65,14 @@ server {
 	rewrite ^/.well-known/host-meta 		/public.php?service=host-meta 		last;
 	rewrite ^/.well-known/host-meta.json 	/public.php?service=host-meta-json 	last;
 
-	location ~ ^/(?:config|data|db_structure\.xml)/ {
+	location ~ ^/(?:config|db_structure\.xml)/ {
 		deny all;
+	}
+
+	# Serve static files upon request of ownCloud directly (X-Accel-Redirect).
+	location /data {
+		internal;
+		alias {{ owncloud_data_dir }}/;
 	}
 
 	location / {
@@ -88,19 +97,19 @@ server {
 		# This little hack speeds-up a WebDAV access from the Finder and also
 		# prevents messing storage with these annoying files.
 		location ~ \.(_.*|DS_Store|Spotlight-V100|TemporaryItems|Trashes|hidden)$ {
-		    access_log		off;
-		    log_not_found 	off;
+			access_log		off;
+			log_not_found 	off;
 
-		    if ($request_method = PUT) {
-		        return 403;
-		    }
-		    return 404;
+			if ($request_method = PUT) {
+				return 403;
+			}
+			return 404;
 		}
 
 		# Tell OS X Finder to not index this drive.
 		location ~ \.metadata_never_index$ {
 			access_log off;
-		    return 200 "Don't index this drive, Finder!";
+			return 200 "Don't index this drive, Finder!";
 		}
 
 		access_log	/var/log/nginx/{{ owncloud_name }}.dav.access.log main;

@@ -27,3 +27,12 @@
   notify: reload nginx
   when: owncloud_nginx_enabled | bool
   tags: nginx
+
+- name: add nginx to owncloud group
+  user: >
+    name=nginx
+    groups={{ owncloud_group }}
+    append=yes
+  notify: restart nginx
+  when: owncloud_nginx_enabled | bool
+  tags: nginx
